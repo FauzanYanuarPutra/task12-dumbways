@@ -89,20 +89,20 @@
 
   <div onclick="showAddProject()" class="form-project hidden fixed top-0 bottom-0 right-0 left-0 flex justify-center items-center">
     <div onclick="event.stopPropagation()" class="bg-white m-5 p-10 w-[100%] md:w-[700px] rounded-lg shadow-md overflow-y-scroll max-h-[90vh]">
-      <form onsubmit="addBlog(event)" id="form-project" class="space-y-4" method="post" action="/projects" enctype="multipart/form-data">
+      <form onsubmit="addProject(event)" id="form-project" class="space-y-4" method="post" action="/projects" enctype="multipart/form-data">
         <input type="hidden" id="project-id" name="projectId" value="">
         <div class="mb-4">
           <label for="project-name" class="block text-sm font-medium judul">Project Name</label>
-          <input type="text" id="project-name" name="name"  class="mt-1 p-2 w-full border rounded focus:outline-none focus:border-[#ff4500]">
+          <input type="text" id="project-name" name="name"  class="mt-1 p-2 w-full border rounded focus:outline-none focus:border-[#ff4500]" required>
         </div>
         <div class="flex gap-4">
           <div class="w-1/2">
             <label for="start-date" class="block text-sm font-medium judul">Start Date</label>
-            <input type="date" id="start-date" name="startDate"  class="mt-1 p-2 w-full border rounded focus:outline-none focus:border-[#ff4500]">
+            <input type="date" id="start-date" name="startDate"  class="mt-1 p-2 w-full border rounded focus:outline-none focus:border-[#ff4500]" >
           </div>
           <div class="w-1/2">
             <label for="end-date" class="block text-sm font-medium judul">End Date</label>
-            <input type="date" id="end-date" name="endDate"  class="mt-1 p-2 w-full border rounded focus:outline-none focus:border-[#ff4500]">
+            <input type="date" id="end-date" name="endDate"  class="mt-1 p-2 w-full border rounded focus:outline-none focus:border-[#ff4500]" >
           </div>
         </div>
         <span class="date-validate-null hidden text-red-500 mb-2">Start date & end date cannot be empty</span>
@@ -124,12 +124,13 @@
               </div>
             <% }) %>
           </div>
-
+          <span class="tech-error-validate hidden text-red-500 mb-2">Description must be more than 150 characters</span>
+        
         <label for="image" class="block text-sm font-medium judul mt-4">Select Image</label>
           <div class="relative flex items-center">
             <label class="custom-file-input w-24 px-2 py-1 bg-gray-300 rounded-l cursor-pointer text-sm whitespace-nowrap py-2">
               Choose File
-              <input type="file" id="image" name="image"  class="bg-red-300 opacity-0" accept="image/*">
+              <input type="file" id="image" name="image" required class="bg-red-300 opacity-0" accept="image/*">
             </label>
             <input type="text" name="imageDescription" id="image-description" class="z-[100] w-full border rounded-r p-1 focus:outline-none focus:border-[#ff4500] p-2">
             <div class="absolute right-0 bottom-0 top-0 h-full p-1 flex justify-center items-center mr-2">
@@ -147,6 +148,59 @@
   </div>
 
 <script>
+
+function validateForm() {
+  const startDate = document.getElementById("start-date").value;
+  const endDate = document.getElementById("end-date").value;
+  const description = document.getElementById("description").value;
+  const imageInput = document.getElementById("image");
+  const selectedTechnologies = document.querySelectorAll('input[type="checkbox"][name="technologies"]:checked');
+
+  const startDateInput = new Date(startDate);
+  const endDateInput = new Date(endDate);
+
+  let valid = true;
+
+  if (description.length < 150) {
+    valid = false;
+    document.querySelector(".deskripsi-error-validate").classList.remove("hidden");
+    document.querySelector(".deskripsi-error-validate").scrollIntoView({ behavior: "smooth" });
+  } else {
+    document.querySelector(".deskripsi-error-validate").classList.add("hidden");
+  }
+
+  if (!imageInput.files[0]) {
+    valid = false;
+  }
+
+  if (selectedTechnologies.length === 0) {
+    valid = false;
+    document.querySelector(".tech-error-validate").classList.remove("hidden");
+    document.querySelector(".tech-error-validate").scrollIntoView({ behavior: "smooth" });
+  } else {
+    document.querySelector(".tech-error-validate").classList.add("hidden");
+  }
+
+  if (!startDate || !endDate) {
+    valid = false;
+    document.querySelector(".date-validate-null").classList.remove("hidden");
+    document.querySelector(".date-validate").classList.add("hidden");
+    document.querySelector(".date-validate-null").scrollIntoView({ behavior: "smooth" });
+  } else if (endDateInput <= startDateInput) {
+    valid = false;
+    document.querySelector(".date-validate").classList.remove("hidden");
+    document.querySelector(".date-validate-null").classList.add("hidden");
+    document.querySelector(".date-validate").scrollIntoView({ behavior: "smooth" });
+  } else {
+    document.querySelector(".date-validate-null").classList.add("hidden");
+    document.querySelector(".date-validate").classList.add("hidden");
+  }
+
+  
+
+  return valid;
+}
+
 
 
 const imageInput = document.getElementById("image");
@@ -193,11 +247,14 @@ function editProject(itemString) {
 
 
 function showAddProject() {
+  
   document.getElementById("project-id").value = "";
   document.getElementById("project-name").value = "";
   document.getElementById("start-date").value = "";
   document.getElementById("end-date").value = "";
   document.getElementById("description").value = "";
+  imagePreview.src = "";
+  imagePreview.classList.add("hidden");
 
   const checkboxes = document.querySelectorAll('input[type="checkbox"][name="technologies"]');
   checkboxes.forEach(checkbox => {
@@ -239,7 +296,14 @@ imageInput.addEventListener("change", function (event) {
   }
 });
 
+function addProject(event) {
+  if (!validateForm()) {
+    event.preventDefault();
+  }
+}
 </script>
+
+
 <%- include('partials/footer.ejs') %>
 
 
